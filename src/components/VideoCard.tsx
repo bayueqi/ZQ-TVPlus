@@ -21,7 +21,6 @@ import {
   saveFavorite,
   subscribeToDataUpdates,
 } from '@/lib/db.client';
-import { isMobileDevice, isTouchDevice } from '@/lib/device';
 import { processImageUrl } from '@/lib/utils';
 import { useLongPress } from '@/hooks/useLongPress';
 
@@ -80,8 +79,6 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   const router = useRouter();
   const [favorited, setFavorited] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isTouch, setIsTouch] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
   const [searchFavorited, setSearchFavorited] = useState<boolean | null>(null); // 搜索结果的收藏状态
 
@@ -100,12 +97,6 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   useEffect(() => {
     setDynamicSourceNames(source_names);
   }, [source_names]);
-
-  // 检测设备类型
-  useEffect(() => {
-    setIsMobile(isMobileDevice());
-    setIsTouch(isTouchDevice());
-  }, []);
 
   useImperativeHandle(ref, () => ({
     setEpisodes: (eps?: number) => setDynamicEpisodes(eps),
@@ -259,9 +250,9 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     }
   }, [from, isAggregate, actualSource, actualId, searchFavorited]);
 
-  // 移动端长按操作
+  // 长按操作
   const handleLongPress = useCallback(() => {
-    if (isMobile && !showMobileActions) { // 防止重复触发
+    if (!showMobileActions) { // 防止重复触发
       // 立即显示菜单，避免等待数据加载导致动画卡顿
       setShowMobileActions(true);
 
@@ -270,7 +261,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
         checkSearchFavoriteStatus();
       }
     }
-  }, [isMobile, showMobileActions, from, isAggregate, actualSource, actualId, searchFavorited, checkSearchFavoriteStatus]);
+  }, [showMobileActions, from, isAggregate, actualSource, actualId, searchFavorited, checkSearchFavoriteStatus]);
 
   // 长按手势hook
   const longPressProps = useLongPress({
@@ -444,10 +435,9 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   return (
     <>
       <div
-        className={`group relative w-full rounded-lg bg-transparent cursor-pointer transition-all duration-300 ease-in-out ${!isTouch ? 'hover:scale-[1.05] hover:z-[500]' : ''
-          }`}
-        onClick={isMobile ? undefined : handleClick}
-        {...(isMobile ? longPressProps : {})}
+        className='group relative w-full rounded-lg bg-transparent cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-[500]'
+        onClick={handleClick}
+        {...longPressProps}
         style={{
           // 禁用所有默认的长按和选择效果
           WebkitUserSelect: 'none',
@@ -533,8 +523,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
 
           {/* 悬浮遮罩 */}
           <div
-            className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 ease-in-out ${isTouch ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'
-              }`}
+            className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 ease-in-out opacity-0 group-hover:opacity-100'
             style={{
               WebkitUserSelect: 'none',
               userSelect: 'none',
@@ -546,8 +535,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             }}
           />
 
-          {/* 播放按钮 - Touch设备隐藏，非Touch设备显示 */}
-          {config.showPlayButton && !isTouch && (
+          {/* 播放按钮 */}
+          {config.showPlayButton && (
             <div
               className='absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-300 ease-in-out delay-75 group-hover:opacity-100 group-hover:scale-100'
               style={{
@@ -577,10 +566,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             </div>
           )}
 
-
-
-          {/* 操作按钮 - Touch设备隐藏，非Touch设备显示 */}
-          {(config.showHeart || config.showCheckCircle) && !isTouch && (
+          {/* 操作按钮 */}
+          {(config.showHeart || config.showCheckCircle) && (
             <div
               className='absolute bottom-3 right-3 flex gap-3 opacity-0 translate-y-2 transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:translate-y-0'
               style={{
@@ -689,8 +676,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             </div>
           )}
 
-          {/* 豆瓣链接 - Touch设备隐藏，非Touch设备显示 */}
-          {config.showDoubanLink && actualDoubanId && actualDoubanId !== 0 && !isTouch && (
+          {/* 豆瓣链接 */}
+          {config.showDoubanLink && actualDoubanId && actualDoubanId !== 0 && (
             <a
               href={
                 isBangumi
