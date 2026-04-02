@@ -34,6 +34,7 @@
     "@types/crypto-js": "^4.2.2",
     "@types/nprogress": "^0.2.3",
     "@upstash/redis": "^1.25.0",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/postgres": "^0.10.0",
     "@vidstack/react": "^1.12.13",
     "anime4k-webgpu": "^1.0.0",
